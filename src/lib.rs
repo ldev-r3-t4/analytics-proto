@@ -5,8 +5,8 @@ extern crate chrono;
 
 use chrono::{UTC, DateTime};
 
-#[derive(Serialize, Deserialize)]
-enum Message {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Message {
     AllChannels {
         total_channels: usize,
         success: bool,
@@ -27,10 +27,34 @@ enum Message {
     },
 }
 
-#[derive(Serialize, Deserialize)]
-struct Event {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
     received_time: DateTime<UTC>,
     serviced_time: DateTime<UTC>,
     message: Message,
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate serde_json;
+
+    use super::*;
+    fn make_event(message: Message) -> Event {
+        Event {
+            received_time: UTC::now(),
+            serviced_time: UTC::now(),
+            message: message,
+        }
+    }
+
+    #[test]
+    fn test_all_channels() {
+        serde_json::to_writer(&mut std::io::stderr(),
+                              &make_event(Message::AllChannels {
+                                              total_channels: 5,
+                                              success: true,
+                                          }))
+                .ok();
+    }
 }
 
