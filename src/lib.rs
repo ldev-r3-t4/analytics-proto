@@ -21,6 +21,10 @@ enum Message {
         message_length: usize,
         success: bool,
     },
+    CreateChannel {
+        channel_name_length: usize,
+        success: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
