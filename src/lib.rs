@@ -56,5 +56,46 @@ mod tests {
                                           }))
                 .ok();
     }
+
+    #[test]
+    fn test_most_recent_messages() {
+        serde_json::to_writer(&mut std::io::stderr(),
+                              &make_event(Message::MostRecentMessages {
+                                              num_messages: 8,
+                                              success: true,
+                                          }))
+                .ok();
+    }
+
+    #[test]
+    fn test_more_messages() {
+        serde_json::to_writer(&mut std::io::stderr(),
+                              &make_event(Message::MoreMessages {
+                                              num_requested: 5,
+                                              num_sent: 0,
+                                              success: false,
+                                          }))
+                .ok();
+    }
+
+    #[test]
+    fn test_send_message() {
+        serde_json::to_writer(&mut std::io::stderr(),
+                              &make_event(Message::SendMessage {
+                                              message_length: 87,
+                                              success: true,
+                                          }))
+                .ok();
+    }
+
+    #[test]
+    fn test_create_channel() {
+        serde_json::to_writer(&mut std::io::stderr(),
+                              &make_event(Message::CreateChannel {
+                                              channel_name_length: 7,
+                                              success: true,
+                                          }))
+                .ok();
+    }
 }
 
