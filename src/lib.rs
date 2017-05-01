@@ -2,15 +2,21 @@
 //! This crate contains the API for the protocol of the analytics server. `Event` is the type which is sent to the
 //! analytics server. Here are some examples of `Event` structures using different `Message` variants:
 //!
-//! `{"received_time":"2017-04-11T04:29:16.064185621Z","serviced_time":"2017-04-11T04:29:16.064188591Z","message":{"AllChannels":{"total_channels":5,"success":true}}}`
+//! All Channels: {"received_time":"2017-05-01T21:21:01.070462025Z","serviced_time":"2017-05-01T21:21:01.070464560Z","success":true,"message":{"AllChannels":{"num_channels":5}}}
 //!
-//! `{"received_time":"2017-04-11T04:29:16.064324152Z","serviced_time":"2017-04-11T04:29:16.064324934Z","message":{"MostRecentMessages":{"num_messages":8,"success":true}}}`
+//! Create Channel: {"received_time":"2017-05-01T21:21:01.070521981Z","serviced_time":"2017-05-01T21:21:01.070522531Z","success":true,"message":{"CreateChannel":{"channel":"boo!"}}}
 //!
-//! `{"received_time":"2017-04-11T04:29:16.064422755Z","serviced_time":"2017-04-11T04:29:16.064423786Z","message":{"MoreMessages":{"num_requested":5,"num_sent":0,"success":false}}}`
+//! Get Channel: {"received_time":"2017-05-01T21:21:01.070554580Z","serviced_time":"2017-05-01T21:21:01.070555092Z","success":true,"message":{"GetChannel":{"channel":"boo!","number_served":42}}}
 //!
-//! `{"received_time":"2017-04-11T04:29:16.064537018Z","serviced_time":"2017-04-11T04:29:16.064537698Z","message":{"SendMessage":{"message_length":87,"success":true}}}`
+//! Delete Channel: {"received_time":"2017-05-01T21:21:01.070586852Z","serviced_time":"2017-05-01T21:21:01.070587314Z","success":true,"message":{"DelChannel":{"channel":"wah!"}}}
 //!
-//! `{"received_time":"2017-04-11T04:29:16.064613838Z","serviced_time":"2017-04-11T04:29:16.064614475Z","message":{"CreateChannel":{"channel_name_length":7,"success":true}}}`
+//! Send Message: {"received_time":"2017-05-01T21:21:01.070615964Z","serviced_time":"2017-05-01T21:21:01.070616427Z","success":true,"message":{"SendMessage":{"channel":"boo!","message":"woah, you scared me!"}}}
+//!
+//! Get Message: {"received_time":"2017-05-01T21:21:01.070649678Z","serviced_time":"2017-05-01T21:21:01.070650200Z","success":true,"message":"GetMessage"}
+//!
+//! Update Message: {"received_time":"2017-05-01T21:21:01.070674641Z","serviced_time":"2017-05-01T21:21:01.070675175Z","success":true,"message":{"UpdateMessage":{"channel":"boo!","old_message":"woah, you scared me!","new_message":"woah, the channel name scared me!"}}}
+//!
+//! Delete Message: {"received_time":"2017-05-01T21:21:01.070721230Z","serviced_time":"2017-05-01T21:21:01.070721680Z","success":true,"message":{"DeleteMessage":{"channel":"boo!","message":"woah, the channel name scared me!"}}}
 
 #[macro_use]
 extern crate serde_derive;
@@ -19,35 +25,42 @@ extern crate chrono;
 
 use chrono::{UTC, DateTime};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum Message {
-    /// JSON Example:
-    /// `{"received_time":"2017-04-11T04:29:16.064185621Z","serviced_time":"2017-04-11T04:29:16.064188591Z","message":{"AllChannels":{"total_channels":5,"success":true}}}`
+    /// All Channels: {"received_time":"2017-05-01T21:21:01.070462025Z","serviced_time":"2017-05-01T21:21:01.070464560Z","success":true,"message":{"AllChannels":{"num_channels":5}}}
     AllChannels {
-        total_channels: usize,
-        success: bool,
+        num_channels: usize,
     },
-    /// JSON Example:
-    /// `{"received_time":"2017-04-11T04:29:16.064324152Z","serviced_time":"2017-04-11T04:29:16.064324934Z","message":{"MostRecentMessages":{"num_messages":8,"success":true}}}`
-    MostRecentMessages { num_messages: usize, success: bool },
-    /// JSON Example:
-    /// `{"received_time":"2017-04-11T04:29:16.064422755Z","serviced_time":"2017-04-11T04:29:16.064423786Z","message":{"MoreMessages":{"num_requested":5,"num_sent":0,"success":false}}}`
-    MoreMessages {
-        num_requested: usize,
-        num_sent: usize,
-        success: bool,
-    },
-    /// JSON Example:
-    /// `{"received_time":"2017-04-11T04:29:16.064537018Z","serviced_time":"2017-04-11T04:29:16.064537698Z","message":{"SendMessage":{"message_length":87,"success":true}}}`
-    SendMessage {
-        message_length: usize,
-        success: bool,
-    },
-    /// JSON Example:
-    /// `{"received_time":"2017-04-11T04:29:16.064613838Z","serviced_time":"2017-04-11T04:29:16.064614475Z","message":{"CreateChannel":{"channel_name_length":7,"success":true}}}`
+    /// Create Channel: {"received_time":"2017-05-01T21:21:01.070521981Z","serviced_time":"2017-05-01T21:21:01.070522531Z","success":true,"message":{"CreateChannel":{"channel":"boo!"}}}
     CreateChannel {
-        channel_name_length: usize,
-        success: bool,
+        channel: String,
+    },
+    /// Get Channel: {"received_time":"2017-05-01T21:21:01.070554580Z","serviced_time":"2017-05-01T21:21:01.070555092Z","success":true,"message":{"GetChannel":{"channel":"boo!","number_served":42}}}
+    GetChannel {
+        channel: String,
+        number_served: usize,
+    },
+    /// Delete Channel: {"received_time":"2017-05-01T21:21:01.070586852Z","serviced_time":"2017-05-01T21:21:01.070587314Z","success":true,"message":{"DelChannel":{"channel":"wah!"}}}
+    DelChannel {
+        channel: String,
+    },
+    /// Send Message: {"received_time":"2017-05-01T21:21:01.070615964Z","serviced_time":"2017-05-01T21:21:01.070616427Z","success":true,"message":{"SendMessage":{"channel":"boo!","message":"woah, you scared me!"}}}
+    SendMessage {
+        channel: String,
+        message: String,
+    },
+    /// Get Message: {"received_time":"2017-05-01T21:21:01.070649678Z","serviced_time":"2017-05-01T21:21:01.070650200Z","success":true,"message":"GetMessage"}
+    GetMessage,
+    /// Update Message: {"received_time":"2017-05-01T21:21:01.070674641Z","serviced_time":"2017-05-01T21:21:01.070675175Z","success":true,"message":{"UpdateMessage":{"channel":"boo!","old_message":"woah, you scared me!","new_message":"woah, the channel name scared me!"}}}
+    UpdateMessage {
+        channel: String,
+        old_message: String,
+        new_message: String,
+    },
+    /// Delete Message: {"received_time":"2017-05-01T21:21:01.070721230Z","serviced_time":"2017-05-01T21:21:01.070721680Z","success":true,"message":{"DeleteMessage":{"channel":"boo!","message":"woah, the channel name scared me!"}}}
+    DeleteMessage {
+        channel: String,
+        message: String,
     },
 }
 
@@ -55,6 +68,7 @@ pub enum Message {
 pub struct Event {
     pub received_time: DateTime<UTC>,
     pub serviced_time: DateTime<UTC>,
+    pub success: bool,
     pub message: Message,
 }
 

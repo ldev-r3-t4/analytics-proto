@@ -6,55 +6,59 @@ use chrono::UTC;
 
 fn main() {
     extern crate serde_json;
-    use std::io::Write;
 
     fn make_event(message: Message) -> Event {
         Event {
             received_time: UTC::now(),
             serviced_time: UTC::now(),
+            success: true,
             message: message,
         }
     }
 
-    serde_json::to_writer(&mut std::io::stderr(),
-                          &make_event(Message::AllChannels {
-                                          total_channels: 5,
-                                          success: true,
-                                      }))
-            .ok();
-    write!(&mut std::io::stderr(), "\n").ok();
+    println!("All Channels: {}",
+             serde_json::to_string(&make_event(Message::AllChannels { num_channels: 5 })).unwrap());
 
-    serde_json::to_writer(&mut std::io::stderr(),
-                          &make_event(Message::MostRecentMessages {
-                                          num_messages: 8,
-                                          success: true,
-                                      }))
-            .ok();
-    write!(&mut std::io::stderr(), "\n").ok();
+    println!("Create Channel: {}",
+             serde_json::to_string(&make_event(Message::CreateChannel { channel: "boo!".into() }))
+                 .unwrap());
 
-    serde_json::to_writer(&mut std::io::stderr(),
-                          &make_event(Message::MoreMessages {
-                                          num_requested: 5,
-                                          num_sent: 0,
-                                          success: false,
-                                      }))
-            .ok();
-    write!(&mut std::io::stderr(), "\n").ok();
+    println!("Get Channel: {}",
+             serde_json::to_string(&make_event(Message::GetChannel {
+                                                   channel: "boo!".into(),
+                                                   number_served: 42,
+                                               }))
+                     .unwrap());
 
-    serde_json::to_writer(&mut std::io::stderr(),
-                          &make_event(Message::SendMessage {
-                                          message_length: 87,
-                                          success: true,
-                                      }))
-            .ok();
-    write!(&mut std::io::stderr(), "\n").ok();
+    println!("Delete Channel: {}",
+             serde_json::to_string(&make_event(Message::DelChannel { channel: "wah!".into() }))
+                 .unwrap());
 
-    serde_json::to_writer(&mut std::io::stderr(),
-                          &make_event(Message::CreateChannel {
-                                          channel_name_length: 7,
-                                          success: true,
-                                      }))
-            .ok();
-    write!(&mut std::io::stderr(), "\n").ok();
+    println!("Send Message: {}",
+             serde_json::to_string(&make_event(Message::SendMessage {
+                                                   channel: "boo!".into(),
+                                                   message: "woah, you scared me!".into(),
+                                               }))
+                     .unwrap());
+
+    println!("Get Message: {}",
+             serde_json::to_string(&make_event(Message::GetMessage)).unwrap());
+
+    println!("Update Message: {}",
+             serde_json::to_string(&make_event(Message::UpdateMessage {
+                                                   channel: "boo!".into(),
+                                                   old_message: "woah, you scared me!".into(),
+                                                   new_message: "woah, the channel name scared me!"
+                                                       .into(),
+                                               }))
+                     .unwrap());
+
+    println!("Delete Message: {}",
+             serde_json::to_string(&make_event(Message::DeleteMessage {
+                                                   channel: "boo!".into(),
+                                                   message: "woah, the channel name scared me!"
+                                                       .into(),
+                                               }))
+                     .unwrap());
 }
 
